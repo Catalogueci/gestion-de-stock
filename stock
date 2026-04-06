@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📦 Gestion de Stock - Application complète</title>
+    <title>📦 Gestion de Stock - Version Définitive</title>
     <style>
         * {
             margin: 0;
@@ -359,7 +359,7 @@
         <button class="btn btn-primary" onclick="printStock()">🖨️ Imprimer</button>
         <button class="btn btn-warning" onclick="clearHistory('entries')">🧹 Vider Entrées</button>
         <button class="btn btn-warning" onclick="clearHistory('exits')">🧹 Vider Sorties</button>
-        <button class="btn btn-danger" onclick="resetAllData()">⚠️ Réinitialiser tout</button>
+        <button class="btn btn-danger" onclick="resetAllData()">⚠️ Réinitialiser TOUT</button>
     </div>
 
     <div class="status-bar" id="statusBar">
@@ -368,54 +368,57 @@
 </div>
 
 <script>
-    // Structure des données
+    // Structure des données - TOUJOURS commencer vides
     let stock = {};
     let entries = [];
     let exits = [];
     let currentFilter = "";
+    
+    // Flag pour savoir si c'est la première initialisation
+    let isFirstLoad = true;
 
-    // Initialisation
+    // Initialisation - Charge uniquement ce qui est dans localStorage
     function init() {
         loadData();
         updateAllDisplays();
-        updateStatus("Application prête. Les données sont sauvegardées automatiquement.", "success");
+        
+        if (isFirstLoad) {
+            if (Object.keys(stock).length === 0 && entries.length === 0 && exits.length === 0) {
+                updateStatus("✅ Base de données vide. Ajoutez vos premiers produits !", "info");
+            } else {
+                updateStatus("✅ Données chargées avec succès.", "success");
+            }
+            isFirstLoad = false;
+        }
     }
 
-    // Chargement depuis localStorage
+    // Chargement depuis localStorage - SANS DONNÉES PAR DÉFAUT
     function loadData() {
         try {
             const savedStock = localStorage.getItem("stock_app_stock");
             const savedEntries = localStorage.getItem("stock_app_entries");
             const savedExits = localStorage.getItem("stock_app_exits");
 
+            // Ne charger que si les données existent, sinon rester vide
             if (savedStock && savedStock !== "{}") {
                 stock = JSON.parse(savedStock);
             } else {
-                // Données par défaut
-                stock = {
-                    "Clavier Mécanique": 12,
-                    "Souris Gaming": 8,
-                    "Écran 24 pouces": 3,
-                    "Câble USB-C": 25
-                };
+                stock = {}; // Toujours commencer vide
             }
 
             if (savedEntries && savedEntries !== "[]") {
                 entries = JSON.parse(savedEntries);
             } else {
-                entries = [
-                    { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 5 },
-                    { date: getCurrentDate(), name: "Souris Gaming", quantity: 3 }
-                ];
+                entries = []; // Toujours commencer vide
             }
 
             if (savedExits && savedExits !== "[]") {
                 exits = JSON.parse(savedExits);
             } else {
-                exits = [
-                    { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 2 }
-                ];
+                exits = []; // Toujours commencer vide
             }
+            
+            console.log("Données chargées:", {stock, entries, exits});
         } catch (e) {
             console.error("Erreur chargement données:", e);
             stock = {};
@@ -430,10 +433,10 @@
             localStorage.setItem("stock_app_stock", JSON.stringify(stock));
             localStorage.setItem("stock_app_entries", JSON.stringify(entries));
             localStorage.setItem("stock_app_exits", JSON.stringify(exits));
-            console.log("Données sauvegardées:", {stock, entries, exits});
+            console.log("✅ Données sauvegardées:", {stock, entries, exits});
         } catch (e) {
             console.error("Erreur sauvegarde:", e);
-            updateStatus("Erreur lors de la sauvegarde!", "danger");
+            updateStatus("❌ Erreur lors de la sauvegarde!", "danger");
         }
     }
 
@@ -476,6 +479,11 @@
         container.innerHTML = "";
         const sortedProducts = Object.keys(stock).sort((a,b) => a.localeCompare(b));
         
+        if (sortedProducts.length === 0) {
+            container.innerHTML = '<div class="list-item" style="justify-content: center; color: var(--text-muted);">📭 Aucun produit en stock. Ajoutez-en !</div>';
+            return;
+        }
+        
         for (let name of sortedProducts) {
             if (currentFilter && !name.toLowerCase().includes(currentFilter.toLowerCase())) {
                 continue;
@@ -485,15 +493,11 @@
             item.className = "list-item";
             if (qty < 5) item.classList.add("low-stock");
             item.innerHTML = `
-                <span>${name}</span>
+                <span>${escapeHtml(name)}</span>
                 <span style="font-weight: bold;">Stock: ${qty}</span>
             `;
             item.onclick = () => fillForm(name);
             container.appendChild(item);
-        }
-        
-        if (container.children.length === 0) {
-            container.innerHTML = '<div class="list-item">Aucun produit trouvé.</div>';
         }
     }
 
@@ -502,6 +506,12 @@
         if (!container) return;
         
         container.innerHTML = "";
+        
+        if (entries.length === 0) {
+            container.innerHTML = '<div class="list-item" style="justify-content: center; color: var(--text-muted);">📭 Aucune entrée enregistrée.</div>';
+            return;
+        }
+        
         const sortedEntries = [...entries].sort((a,b) => new Date(b.date) - new Date(a.date));
         
         for (let entry of sortedEntries) {
@@ -509,14 +519,10 @@
             item.className = "list-item success-item";
             item.innerHTML = `
                 <span>${entry.date}</span>
-                <span>${entry.name}</span>
+                <span>${escapeHtml(entry.name)}</span>
                 <span style="font-weight: bold;">+${entry.quantity}</span>
             `;
             container.appendChild(item);
-        }
-        
-        if (container.children.length === 0) {
-            container.innerHTML = '<div class="list-item">Aucune entrée enregistrée.</div>';
         }
     }
 
@@ -525,6 +531,12 @@
         if (!container) return;
         
         container.innerHTML = "";
+        
+        if (exits.length === 0) {
+            container.innerHTML = '<div class="list-item" style="justify-content: center; color: var(--text-muted);">📭 Aucune sortie enregistrée.</div>';
+            return;
+        }
+        
         const sortedExits = [...exits].sort((a,b) => new Date(b.date) - new Date(a.date));
         
         for (let exit of sortedExits) {
@@ -532,14 +544,10 @@
             item.className = "list-item danger-item";
             item.innerHTML = `
                 <span>${exit.date}</span>
-                <span>${exit.name}</span>
+                <span>${escapeHtml(exit.name)}</span>
                 <span style="font-weight: bold;">-${exit.quantity}</span>
             `;
             container.appendChild(item);
-        }
-        
-        if (container.children.length === 0) {
-            container.innerHTML = '<div class="list-item">Aucune sortie enregistrée.</div>';
         }
     }
 
@@ -560,13 +568,13 @@
         const qtyInput = document.getElementById("productQty").value.trim();
         
         if (!name) {
-            updateStatus("Veuillez saisir un nom de produit.", "warning");
+            updateStatus("⚠️ Veuillez saisir un nom de produit.", "warning");
             return;
         }
         
         const qty = parseInt(qtyInput);
         if (isNaN(qty) || qty <= 0) {
-            updateStatus("Veuillez saisir une quantité valide (>0).", "warning");
+            updateStatus("⚠️ Veuillez saisir une quantité valide (>0).", "warning");
             return;
         }
         
@@ -576,7 +584,7 @@
             stock[name] = qty;
         }
         
-        entries.push({ date: getCurrentDate(), name: name, quantity: qty });
+        entries.unshift({ date: getCurrentDate(), name: name, quantity: qty });
         saveData();
         updateAllDisplays();
         document.getElementById("productName").value = "";
@@ -589,13 +597,13 @@
         const qtyInput = document.getElementById("productQty").value.trim();
         
         if (!name) {
-            updateStatus("Veuillez saisir un nom de produit.", "warning");
+            updateStatus("⚠️ Veuillez saisir un nom de produit.", "warning");
             return;
         }
         
         const qty = parseInt(qtyInput);
         if (isNaN(qty) || qty <= 0) {
-            updateStatus("Veuillez saisir une quantité valide (>0).", "warning");
+            updateStatus("⚠️ Veuillez saisir une quantité valide (>0).", "warning");
             return;
         }
         
@@ -610,7 +618,7 @@
         }
         
         stock[name] -= qty;
-        exits.push({ date: getCurrentDate(), name: name, quantity: qty });
+        exits.unshift({ date: getCurrentDate(), name: name, quantity: qty });
         
         if (stock[name] === 0) {
             delete stock[name];
@@ -627,7 +635,7 @@
         const name = document.getElementById("productName").value.trim();
         
         if (!name) {
-            updateStatus("Veuillez saisir un nom de produit à supprimer.", "warning");
+            updateStatus("⚠️ Veuillez saisir un nom de produit à supprimer.", "warning");
             return;
         }
         
@@ -636,20 +644,20 @@
             return;
         }
         
-        if (confirm(`Voulez-vous vraiment supprimer "${name}" ?`)) {
+        if (confirm(`⚠️ Voulez-vous vraiment supprimer "${name}" définitivement ?`)) {
             delete stock[name];
             saveData();
             updateAllDisplays();
             document.getElementById("productName").value = "";
             document.getElementById("productQty").value = "";
-            updateStatus(`✅ Produit "${name}" supprimé.`, "success");
+            updateStatus(`✅ Produit "${name}" supprimé définitivement.`, "success");
         }
     }
     
     function searchProducts() {
         currentFilter = document.getElementById("searchInput").value.trim();
         updateStockDisplay();
-        updateStatus(`Recherche: "${currentFilter || 'tous les produits'}"`, "info");
+        updateStatus(`🔍 Recherche: "${currentFilter || 'tous les produits'}"`, "info");
     }
     
     function clearSearch() {
@@ -661,34 +669,48 @@
     
     function clearHistory(type) {
         if (type === 'entries') {
-            if (confirm("⚠️ Voulez-vous vraiment vider TOUT l'historique des entrées ?")) {
+            if (confirm("⚠️⚠️⚠️ Voulez-vous vraiment SUPPRIMER DÉFINITIVEMENT tout l'historique des entrées ?\n\nCette action est IRRÉVERSIBLE !")) {
                 entries = [];
                 saveData();
                 updateEntriesDisplay();
-                updateStatus("✅ Historique des entrées vidé avec succès.", "success");
+                updateStatus("✅ Historique des entrées vidé définitivement.", "success");
             }
         } else if (type === 'exits') {
-            if (confirm("⚠️ Voulez-vous vraiment vider TOUT l'historique des sorties ?")) {
+            if (confirm("⚠️⚠️⚠️ Voulez-vous vraiment SUPPRIMER DÉFINITIVEMENT tout l'historique des sorties ?\n\nCette action est IRRÉVERSIBLE !")) {
                 exits = [];
                 saveData();
                 updateExitsDisplay();
-                updateStatus("✅ Historique des sorties vidé avec succès.", "success");
+                updateStatus("✅ Historique des sorties vidé définitivement.", "success");
             }
         }
     }
     
     function resetAllData() {
-        if (confirm("⚠️⚠️⚠️ ATTENTION ! Cette action va SUPPRIMER TOUTES les données (stocks, entrées, sorties).\n\nVoulez-vous vraiment continuer ?")) {
+        if (confirm("🔴🔴🔴 ATTENTION ! Cette action va SUPPRIMER DÉFINITIVEMENT TOUTES les données :\n\n• Tous les produits en stock\n• Tout l'historique des entrées\n• Tout l'historique des sorties\n\nCette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment continuer ?")) {
+            
+            // Vider complètement toutes les données
             stock = {};
             entries = [];
             exits = [];
+            
+            // Sauvegarder le vide
             saveData();
+            
+            // Mettre à jour l'affichage
             updateAllDisplays();
+            
+            // Vider les champs
             document.getElementById("productName").value = "";
             document.getElementById("productQty").value = "";
             document.getElementById("searchInput").value = "";
             currentFilter = "";
-            updateStatus("✅ Toutes les données ont été réinitialisées.", "success");
+            
+            updateStatus("🔴 TOUTES les données ont été définitivement supprimées. L'application est maintenant vide.", "danger");
+            
+            // Forcer un rechargement visuel
+            setTimeout(() => {
+                updateAllDisplays();
+            }, 100);
         }
     }
     
@@ -712,63 +734,56 @@
                 .low { color: #ef4444; font-weight: bold; }
                 .success { color: #10b981; }
                 .danger { color: #ef4444; }
+                .empty { text-align: center; color: #999; font-style: italic; }
             </style>
         </head>
         <body>
             <h1>📦 Rapport complet de gestion de stock</h1>
             <p>Généré le ${getCurrentDate()}</p>
             
-            <h2>Stock actuel</h2>
-            <table>
-                <thead><tr><th>Produit</th><th>Stock</th></tr></thead>
-                <tbody>
-        `;
+            <h2>Stock actuel</h2>`;
         
-        const sortedProducts = Object.keys(stock).sort();
-        for (let name of sortedProducts) {
-            const qty = stock[name];
-            const lowClass = qty < 5 ? 'class="low"' : '';
-            htmlContent += `<tr ${lowClass}><td>${escapeHtml(name)}</td><td>${qty}</td></tr>`;
+        if (Object.keys(stock).length === 0) {
+            htmlContent += `<p class="empty">Aucun produit en stock.</p>`;
+        } else {
+            htmlContent += `<table><thead><tr><th>Produit</th><th>Stock</th></tr></thead><tbody>`;
+            const sortedProducts = Object.keys(stock).sort();
+            for (let name of sortedProducts) {
+                const qty = stock[name];
+                const lowClass = qty < 5 ? 'class="low"' : '';
+                htmlContent += `<tr ${lowClass}><td>${escapeHtml(name)}</td><td>${qty}</td></tr>`;
+            }
+            htmlContent += `</tbody></table>`;
+        }
+        
+        htmlContent += `<h2>Historique des entrées</h2>`;
+        if (entries.length === 0) {
+            htmlContent += `<p class="empty">Aucune entrée enregistrée.</p>`;
+        } else {
+            htmlContent += `<table><thead><tr><th>Date</th><th>Produit</th><th>Quantité</th></tr></thead><tbody>`;
+            for (let entry of entries.slice(-50).reverse()) {
+                htmlContent += `<tr class="success"><td>${entry.date}</td><td>${escapeHtml(entry.name)}</td><td>+${entry.quantity}</td></tr>`;
+            }
+            htmlContent += `</tbody></table>`;
+        }
+        
+        htmlContent += `<h2>Historique des sorties</h2>`;
+        if (exits.length === 0) {
+            htmlContent += `<p class="empty">Aucune sortie enregistrée.</p>`;
+        } else {
+            htmlContent += `<table><thead><tr><th>Date</th><th>Produit</th><th>Quantité</th></tr></thead><tbody>`;
+            for (let exit of exits.slice(-50).reverse()) {
+                htmlContent += `<tr class="danger"><td>${exit.date}</td><td>${escapeHtml(exit.name)}</td><td>-${exit.quantity}</td></tr>`;
+            }
+            htmlContent += `</tbody></table>`;
         }
         
         htmlContent += `
-                </tbody>
-            </table>
-            
-            <h2>Historique des entrées</h2>
-            <table>
-                <thead><tr><th>Date</th><th>Produit</th><th>Quantité</th></tr></thead>
-                <tbody>
-        `;
-        
-        for (let entry of entries.slice(-50).reverse()) {
-            htmlContent += `<tr class="success"><td>${entry.date}</td><td>${escapeHtml(entry.name)}</td><td>+${entry.quantity}</td></tr>`;
-        }
-        
-        htmlContent += `
-                </tbody>
-            </table>
-            
-            <h2>Historique des sorties</h2>
-            <table>
-                <thead><tr><th>Date</th><th>Produit</th><th>Quantité</th></tr></thead>
-                <tbody>
-        `;
-        
-        for (let exit of exits.slice(-50).reverse()) {
-            htmlContent += `<tr class="danger"><td>${exit.date}</td><td>${escapeHtml(exit.name)}</td><td>-${exit.quantity}</td></tr>`;
-        }
-        
-        htmlContent += `
-                </tbody>
-            </table>
-            
             <div class="footer">
                 Rapport généré automatiquement par l'application de Gestion de Stock
             </div>
         </body>
-        </html>
-        `;
+        </html>`;
         
         printWindow.document.write(htmlContent);
         printWindow.document.close();
