@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📦 Gestion de Stock</title>
+    <title>📦 Gestion de Stock - Application complète</title>
     <style>
         * {
             margin: 0;
@@ -27,16 +27,6 @@
             --text-muted: #64748b;
         }
 
-        body {
-            font-family: 'Segoe UI', 'Helvetica', Arial, sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        /* Thème sombre */
         body.dark {
             --bg: #1e293b;
             --fg: #f8fafc;
@@ -47,13 +37,20 @@
             --text-muted: #94a3b8;
         }
 
-        /* Container principal */
+        body {
+            font-family: 'Segoe UI', 'Helvetica', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* En-tête */
         .header {
             display: flex;
             justify-content: space-between;
@@ -84,7 +81,6 @@
             transform: scale(1.05);
         }
 
-        /* Cartes */
         .card {
             background: var(--card);
             border-radius: 12px;
@@ -103,7 +99,6 @@
             display: inline-block;
         }
 
-        /* Formulaires */
         .form-row {
             display: flex;
             gap: 15px;
@@ -139,7 +134,6 @@
             box-shadow: 0 0 0 2px rgba(99,102,241,0.2);
         }
 
-        /* Boutons */
         .btn-group {
             display: flex;
             gap: 10px;
@@ -168,7 +162,6 @@
         .btn-primary { background: var(--accent); color: white; }
         .btn-secondary { background: var(--highlight); color: var(--fg); }
 
-        /* Onglets */
         .tabs {
             display: flex;
             gap: 5px;
@@ -212,7 +205,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Listes */
         .list-container {
             max-height: 400px;
             overflow-y: auto;
@@ -227,6 +219,9 @@
             font-family: 'Consolas', monospace;
             font-size: 0.9rem;
             cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .list-item:last-child {
@@ -250,7 +245,6 @@
             color: var(--danger);
         }
 
-        /* Barre de recherche */
         .search-bar {
             display: flex;
             gap: 10px;
@@ -266,7 +260,6 @@
             color: var(--fg);
         }
 
-        /* Barre d'outils */
         .toolbar {
             display: flex;
             gap: 10px;
@@ -276,7 +269,6 @@
             border-top: 1px solid var(--highlight);
         }
 
-        /* Status bar */
         .status-bar {
             background: var(--highlight);
             padding: 10px 15px;
@@ -285,7 +277,6 @@
             font-size: 0.85rem;
         }
 
-        /* Scrollbar */
         .list-container::-webkit-scrollbar {
             width: 8px;
         }
@@ -300,7 +291,6 @@
             border-radius: 4px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .form-row { flex-direction: column; }
@@ -312,13 +302,11 @@
 </head>
 <body>
 <div class="container">
-    <!-- En-tête -->
     <div class="header">
         <div class="title">📦 GESTION DE STOCK</div>
         <button class="theme-btn" onclick="toggleTheme()">🌓 Thème</button>
     </div>
 
-    <!-- Carte de saisie -->
     <div class="card">
         <div class="card-title">➕ Gestion des Produits</div>
         <div class="form-row">
@@ -338,7 +326,6 @@
         </div>
     </div>
 
-    <!-- Recherche -->
     <div class="card">
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="🔍 Rechercher un produit...">
@@ -347,7 +334,6 @@
         </div>
     </div>
 
-    <!-- Onglets -->
     <div class="card" style="padding: 0; overflow: hidden;">
         <div class="tabs">
             <button class="tab active" onclick="switchTab('stock')">📦 Stock Actuel</button>
@@ -355,92 +341,100 @@
             <button class="tab" onclick="switchTab('exits')">⬇️ Sorties</button>
         </div>
 
-        <!-- Contenu Stock -->
         <div id="stockTab" class="tab-content active" style="padding: 20px;">
             <div class="list-container" id="stockList"></div>
         </div>
 
-        <!-- Contenu Entrées -->
         <div id="entriesTab" class="tab-content" style="padding: 20px;">
             <div class="list-container" id="entriesList"></div>
         </div>
 
-        <!-- Contenu Sorties -->
         <div id="exitsTab" class="tab-content" style="padding: 20px;">
             <div class="list-container" id="exitsList"></div>
         </div>
     </div>
 
-    <!-- Barre d'outils -->
     <div class="toolbar">
-        <button class="btn btn-primary" onclick="exportPDF()">🖨️ Exporter PDF</button>
+        <button class="btn btn-primary" onclick="exportToPDF()">🖨️ Exporter PDF</button>
         <button class="btn btn-primary" onclick="printStock()">🖨️ Imprimer</button>
         <button class="btn btn-warning" onclick="clearHistory('entries')">🧹 Vider Entrées</button>
         <button class="btn btn-warning" onclick="clearHistory('exits')">🧹 Vider Sorties</button>
+        <button class="btn btn-danger" onclick="resetAllData()">⚠️ Réinitialiser tout</button>
     </div>
 
-    <!-- Barre de statut -->
     <div class="status-bar" id="statusBar">
         ✅ Prêt.
     </div>
 </div>
 
 <script>
-    // ==================== STOCK DATA ====================
-    let stock = {};  // { "Nom": stock_quantity }
-    let entries = []; // [{ date, name, quantity }]
-    let exits = [];   // [{ date, name, quantity }]
-
+    // Structure des données
+    let stock = {};
+    let entries = [];
+    let exits = [];
     let currentFilter = "";
-    let searchTimeout = null;
 
-    // ==================== INITIALISATION ====================
+    // Initialisation
     function init() {
         loadData();
         updateAllDisplays();
-        updateStatus("Prêt.", "success");
+        updateStatus("Application prête. Les données sont sauvegardées automatiquement.", "success");
     }
 
+    // Chargement depuis localStorage
     function loadData() {
-        // Charger depuis localStorage
-        const savedStock = localStorage.getItem("stock_app_stock");
-        const savedEntries = localStorage.getItem("stock_app_entries");
-        const savedExits = localStorage.getItem("stock_app_exits");
+        try {
+            const savedStock = localStorage.getItem("stock_app_stock");
+            const savedEntries = localStorage.getItem("stock_app_entries");
+            const savedExits = localStorage.getItem("stock_app_exits");
 
-        if (savedStock) {
-            stock = JSON.parse(savedStock);
-        } else {
-            // Données d'exemple
-            stock = {
-                "Clavier Mécanique": 12,
-                "Souris Gaming": 8,
-                "Écran 24 pouces": 3,
-                "Câble USB-C": 25
-            };
-        }
+            if (savedStock && savedStock !== "{}") {
+                stock = JSON.parse(savedStock);
+            } else {
+                // Données par défaut
+                stock = {
+                    "Clavier Mécanique": 12,
+                    "Souris Gaming": 8,
+                    "Écran 24 pouces": 3,
+                    "Câble USB-C": 25
+                };
+            }
 
-        if (savedEntries) {
-            entries = JSON.parse(savedEntries);
-        } else {
-            entries = [
-                { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 5 },
-                { date: getCurrentDate(), name: "Souris Gaming", quantity: 3 }
-            ];
-        }
+            if (savedEntries && savedEntries !== "[]") {
+                entries = JSON.parse(savedEntries);
+            } else {
+                entries = [
+                    { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 5 },
+                    { date: getCurrentDate(), name: "Souris Gaming", quantity: 3 }
+                ];
+            }
 
-        if (savedExits) {
-            exits = JSON.parse(savedExits);
-        } else {
-            exits = [
-                { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 2 }
-            ];
+            if (savedExits && savedExits !== "[]") {
+                exits = JSON.parse(savedExits);
+            } else {
+                exits = [
+                    { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 2 }
+                ];
+            }
+        } catch (e) {
+            console.error("Erreur chargement données:", e);
+            stock = {};
+            entries = [];
+            exits = [];
         }
     }
 
+    // Sauvegarde dans localStorage
     function saveData() {
-        localStorage.setItem("stock_app_stock", JSON.stringify(stock));
-        localStorage.setItem("stock_app_entries", JSON.stringify(entries));
-        localStorage.setItem("stock_app_exits", JSON.stringify(exits));
+        try {
+            localStorage.setItem("stock_app_stock", JSON.stringify(stock));
+            localStorage.setItem("stock_app_entries", JSON.stringify(entries));
+            localStorage.setItem("stock_app_exits", JSON.stringify(exits));
+            console.log("Données sauvegardées:", {stock, entries, exits});
+        } catch (e) {
+            console.error("Erreur sauvegarde:", e);
+            updateStatus("Erreur lors de la sauvegarde!", "danger");
+        }
     }
 
     function getCurrentDate() {
@@ -452,7 +446,7 @@
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit'
-        }).replace(',', '');
+        });
     }
 
     function updateStatus(message, type = "info") {
@@ -466,18 +460,15 @@
         statusBar.style.color = colors[type] || colors.info;
         statusBar.innerHTML = message;
         
-        // Auto-effacer après 3 secondes pour les messages non-info
-        if (type !== "info") {
-            setTimeout(() => {
-                if (document.getElementById("statusBar").innerHTML === message) {
-                    document.getElementById("statusBar").innerHTML = "✅ Prêt.";
-                    document.getElementById("statusBar").style.color = "var(--fg)";
-                }
-            }, 3000);
-        }
+        setTimeout(() => {
+            if (document.getElementById("statusBar").innerHTML === message) {
+                document.getElementById("statusBar").innerHTML = "✅ Prêt.";
+                document.getElementById("statusBar").style.color = "var(--fg)";
+            }
+        }, 3000);
     }
 
-    // ==================== AFFICHAGE ====================
+    // Affichages
     function updateStockDisplay() {
         const container = document.getElementById("stockList");
         if (!container) return;
@@ -493,7 +484,10 @@
             const item = document.createElement("div");
             item.className = "list-item";
             if (qty < 5) item.classList.add("low-stock");
-            item.innerHTML = `${name.padEnd(30)} | Stock: ${qty}`;
+            item.innerHTML = `
+                <span>${name}</span>
+                <span style="font-weight: bold;">Stock: ${qty}</span>
+            `;
             item.onclick = () => fillForm(name);
             container.appendChild(item);
         }
@@ -513,7 +507,11 @@
         for (let entry of sortedEntries) {
             const item = document.createElement("div");
             item.className = "list-item success-item";
-            item.innerHTML = `${entry.date} | ${entry.name.padEnd(30)} | +${entry.quantity}`;
+            item.innerHTML = `
+                <span>${entry.date}</span>
+                <span>${entry.name}</span>
+                <span style="font-weight: bold;">+${entry.quantity}</span>
+            `;
             container.appendChild(item);
         }
         
@@ -532,7 +530,11 @@
         for (let exit of sortedExits) {
             const item = document.createElement("div");
             item.className = "list-item danger-item";
-            item.innerHTML = `${exit.date} | ${exit.name.padEnd(30)} | -${exit.quantity}`;
+            item.innerHTML = `
+                <span>${exit.date}</span>
+                <span>${exit.name}</span>
+                <span style="font-weight: bold;">-${exit.quantity}</span>
+            `;
             container.appendChild(item);
         }
         
@@ -552,7 +554,7 @@
         document.getElementById("productQty").focus();
     }
 
-    // ==================== FONCTIONS PRINCIPALES ====================
+    // Actions principales
     function addProduct() {
         const name = document.getElementById("productName").value.trim();
         const qtyInput = document.getElementById("productQty").value.trim();
@@ -574,11 +576,12 @@
             stock[name] = qty;
         }
         
-        entries.unshift({ date: getCurrentDate(), name: name, quantity: qty });
+        entries.push({ date: getCurrentDate(), name: name, quantity: qty });
         saveData();
         updateAllDisplays();
-        clearForm();
-        updateStatus(`Produit "${name}" ajouté avec succès (+${qty}).`, "success");
+        document.getElementById("productName").value = "";
+        document.getElementById("productQty").value = "";
+        updateStatus(`✅ Produit "${name}" ajouté avec succès (+${qty}).`, "success");
     }
     
     function sellProduct() {
@@ -597,27 +600,27 @@
         }
         
         if (!stock[name]) {
-            updateStatus(`Produit "${name}" non trouvé.`, "danger");
+            updateStatus(`❌ Produit "${name}" non trouvé.`, "danger");
             return;
         }
         
         if (stock[name] < qty) {
-            updateStatus(`Stock insuffisant pour "${name}". Stock actuel: ${stock[name]}`, "danger");
+            updateStatus(`❌ Stock insuffisant pour "${name}". Stock actuel: ${stock[name]}`, "danger");
             return;
         }
         
         stock[name] -= qty;
-        exits.unshift({ date: getCurrentDate(), name: name, quantity: qty });
+        exits.push({ date: getCurrentDate(), name: name, quantity: qty });
         
-        // Supprimer si stock à 0
         if (stock[name] === 0) {
             delete stock[name];
         }
         
         saveData();
         updateAllDisplays();
-        clearForm();
-        updateStatus(`Vente de "${name}" enregistrée (-${qty}).`, "success");
+        document.getElementById("productName").value = "";
+        document.getElementById("productQty").value = "";
+        updateStatus(`✅ Vente de "${name}" enregistrée (-${qty}).`, "success");
     }
     
     function deleteProduct() {
@@ -629,7 +632,7 @@
         }
         
         if (!stock[name]) {
-            updateStatus(`Produit "${name}" non trouvé.`, "danger");
+            updateStatus(`❌ Produit "${name}" non trouvé.`, "danger");
             return;
         }
         
@@ -637,16 +640,16 @@
             delete stock[name];
             saveData();
             updateAllDisplays();
-            clearForm();
-            updateStatus(`Produit "${name}" supprimé.`, "success");
+            document.getElementById("productName").value = "";
+            document.getElementById("productQty").value = "";
+            updateStatus(`✅ Produit "${name}" supprimé.`, "success");
         }
     }
     
     function searchProducts() {
-        const searchTerm = document.getElementById("searchInput").value.trim();
-        currentFilter = searchTerm;
+        currentFilter = document.getElementById("searchInput").value.trim();
         updateStockDisplay();
-        updateStatus(`Recherche: "${searchTerm || 'tous les produits'}"`, "info");
+        updateStatus(`Recherche: "${currentFilter || 'tous les produits'}"`, "info");
     }
     
     function clearSearch() {
@@ -656,33 +659,41 @@
         updateStatus("Recherche effacée.", "info");
     }
     
-    function clearForm() {
-        document.getElementById("productName").value = "";
-        document.getElementById("productQty").value = "";
-        document.getElementById("productName").focus();
-    }
-    
     function clearHistory(type) {
         if (type === 'entries') {
-            if (confirm("Voulez-vous vraiment vider l'historique des entrées ?")) {
+            if (confirm("⚠️ Voulez-vous vraiment vider TOUT l'historique des entrées ?")) {
                 entries = [];
                 saveData();
                 updateEntriesDisplay();
-                updateStatus("Historique des entrées vidé.", "success");
+                updateStatus("✅ Historique des entrées vidé avec succès.", "success");
             }
         } else if (type === 'exits') {
-            if (confirm("Voulez-vous vraiment vider l'historique des sorties ?")) {
+            if (confirm("⚠️ Voulez-vous vraiment vider TOUT l'historique des sorties ?")) {
                 exits = [];
                 saveData();
                 updateExitsDisplay();
-                updateStatus("Historique des sorties vidé.", "success");
+                updateStatus("✅ Historique des sorties vidé avec succès.", "success");
             }
         }
     }
     
-    // ==================== EXPORT & IMPRESSION ====================
-    function exportPDF() {
-        // Générer un rapport HTML pour impression/PDF
+    function resetAllData() {
+        if (confirm("⚠️⚠️⚠️ ATTENTION ! Cette action va SUPPRIMER TOUTES les données (stocks, entrées, sorties).\n\nVoulez-vous vraiment continuer ?")) {
+            stock = {};
+            entries = [];
+            exits = [];
+            saveData();
+            updateAllDisplays();
+            document.getElementById("productName").value = "";
+            document.getElementById("productQty").value = "";
+            document.getElementById("searchInput").value = "";
+            currentFilter = "";
+            updateStatus("✅ Toutes les données ont été réinitialisées.", "success");
+        }
+    }
+    
+    // Export PDF et impression
+    function exportToPDF() {
         const printWindow = window.open('', '_blank');
         let htmlContent = `
         <!DOCTYPE html>
@@ -693,20 +704,23 @@
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 h1 { color: #4f46e5; border-bottom: 2px solid #4f46e5; }
+                h2 { color: #6366f1; margin-top: 30px; }
                 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                 th { background-color: #4f46e5; color: white; }
                 .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
                 .low { color: #ef4444; font-weight: bold; }
+                .success { color: #10b981; }
+                .danger { color: #ef4444; }
             </style>
         </head>
         <body>
-            <h1>📦 Inventaire des Stocks</h1>
+            <h1>📦 Rapport complet de gestion de stock</h1>
             <p>Généré le ${getCurrentDate()}</p>
+            
+            <h2>Stock actuel</h2>
             <table>
-                <thead>
-                    <tr><th>Produit</th><th>Stock</th></tr>
-                </thead>
+                <thead><tr><th>Produit</th><th>Stock</th></tr></thead>
                 <tbody>
         `;
         
@@ -720,8 +734,37 @@
         htmlContent += `
                 </tbody>
             </table>
+            
+            <h2>Historique des entrées</h2>
+            <table>
+                <thead><tr><th>Date</th><th>Produit</th><th>Quantité</th></tr></thead>
+                <tbody>
+        `;
+        
+        for (let entry of entries.slice(-50).reverse()) {
+            htmlContent += `<tr class="success"><td>${entry.date}</td><td>${escapeHtml(entry.name)}</td><td>+${entry.quantity}</td></tr>`;
+        }
+        
+        htmlContent += `
+                </tbody>
+            </table>
+            
+            <h2>Historique des sorties</h2>
+            <table>
+                <thead><tr><th>Date</th><th>Produit</th><th>Quantité</th></tr></thead>
+                <tbody>
+        `;
+        
+        for (let exit of exits.slice(-50).reverse()) {
+            htmlContent += `<tr class="danger"><td>${exit.date}</td><td>${escapeHtml(exit.name)}</td><td>-${exit.quantity}</td></tr>`;
+        }
+        
+        htmlContent += `
+                </tbody>
+            </table>
+            
             <div class="footer">
-                Rapport généré automatiquement - Gestion de Stock
+                Rapport généré automatiquement par l'application de Gestion de Stock
             </div>
         </body>
         </html>
@@ -730,11 +773,11 @@
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         printWindow.print();
-        updateStatus("Export PDF/Impression lancée.", "success");
+        updateStatus("✅ Export PDF/Impression lancé.", "success");
     }
     
     function printStock() {
-        exportPDF(); // Même comportement
+        exportToPDF();
     }
     
     function escapeHtml(text) {
@@ -743,25 +786,27 @@
         return div.innerHTML;
     }
     
-    // ==================== INTERFACE ONGLETS ====================
+    // Interface onglets
     function switchTab(tabName) {
-        // Mettre à jour les onglets
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         
         if (tabName === 'stock') {
-            document.querySelector('.tab').classList.add('active');
+            document.querySelectorAll('.tab')[0].classList.add('active');
             document.getElementById('stockTab').classList.add('active');
+            updateStockDisplay();
         } else if (tabName === 'entries') {
             document.querySelectorAll('.tab')[1].classList.add('active');
             document.getElementById('entriesTab').classList.add('active');
+            updateEntriesDisplay();
         } else if (tabName === 'exits') {
             document.querySelectorAll('.tab')[2].classList.add('active');
             document.getElementById('exitsTab').classList.add('active');
+            updateExitsDisplay();
         }
     }
     
-    // ==================== THEME ====================
+    // Thème
     function toggleTheme() {
         document.body.classList.toggle('dark');
         const isDark = document.body.classList.contains('dark');
@@ -776,12 +821,12 @@
         }
     }
     
-    // ==================== ÉVÉNEMENTS ====================
+    // Événements
     document.addEventListener('DOMContentLoaded', () => {
         loadTheme();
         init();
         
-        // Recherche en temps réel
+        let searchTimeout;
         const searchInput = document.getElementById("searchInput");
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
@@ -790,7 +835,6 @@
             }, 300);
         });
         
-        // Enter dans les champs
         document.getElementById("productQty").addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addProduct();
         });
