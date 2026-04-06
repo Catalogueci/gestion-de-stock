@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Gestion de Stock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        :root {
+            --bg: #f5f7fa;
+            --fg: #2d3748;
+            --button-bg: #4f46e5;
+            --button-fg: #ffffff;
+            --entry-bg: #ffffff;
+            --highlight: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --accent: #6366f1;
+            --card: #ffffff;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Thème sombre */
+        body.dark {
+            --bg: #1e293b;
+            --fg: #f8fafc;
+            --button-bg: #6366f1;
+            --entry-bg: #334155;
+            --highlight: #475569;
+            --card: #1e293b;
+            --text-muted: #94a3b8;
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* En-tête */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--highlight);
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .theme-btn {
+            background: var(--highlight);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--fg);
+            transition: transform 0.2s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Cartes */
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--highlight);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+            display: inline-block;
+        }
+
+        /* Formulaires */
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--highlight);
+            border-radius: 8px;
+            background: var(--entry-bg);
+            color: var(--fg);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.2);
+        }
+
+        /* Boutons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.95);
+        }
+
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: var(--highlight); color: var(--fg); }
+
+        /* Onglets */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--highlight);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            background: var(--card);
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--highlight);
+            color: var(--fg);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Listes */
+        .list-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--highlight);
+            border-radius: 8px;
+            background: var(--entry-bg);
+        }
+
+        .list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--highlight);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: var(--highlight);
+        }
+
+        .low-stock {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .success-item {
+            color: var(--success);
+        }
+
+        .danger-item {
+            color: var(--danger);
+        }
+
+        /* Barre de recherche */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--highlight);
+            border-radius: 8px;
+            background: var(--entry-bg);
+            color: var(--fg);
+        }
+
+        /* Barre d'outils */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--highlight);
+        }
+
+        /* Status bar */
+        .status-bar {
+            background: var(--highlight);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Scrollbar */
+        .list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .list-container::-webkit-scrollbar-track {
+            background: var(--highlight);
+            border-radius: 4px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .form-row { flex-direction: column; }
+            .btn-group { justify-content: center; }
+            .tabs { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <div class="title">📦 GESTION DE STOCK</div>
+        <button class="theme-btn" onclick="toggleTheme()">🌓 Thème</button>
+    </div>
+
+    <!-- Carte de saisie -->
+    <div class="card">
+        <div class="card-title">➕ Gestion des Produits</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nom du Produit</label>
+                <input type="text" id="productName" placeholder="Ex: Clavier USB">
+            </div>
+            <div class="form-group">
+                <label>Quantité</label>
+                <input type="number" id="productQty" placeholder="0">
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="addProduct()">📥 Ajouter</button>
+            <button class="btn btn-danger" onclick="sellProduct()">📤 Vendre</button>
+            <button class="btn btn-warning" onclick="deleteProduct()">🗑️ Supprimer</button>
+        </div>
+    </div>
+
+    <!-- Recherche -->
+    <div class="card">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Rechercher un produit...">
+            <button class="btn btn-primary" onclick="searchProducts()">Rechercher</button>
+            <button class="btn btn-secondary" onclick="clearSearch()">🧹 Effacer</button>
+        </div>
+    </div>
+
+    <!-- Onglets -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('stock')">📦 Stock Actuel</button>
+            <button class="tab" onclick="switchTab('entries')">⬆️ Entrées</button>
+            <button class="tab" onclick="switchTab('exits')">⬇️ Sorties</button>
+        </div>
+
+        <!-- Contenu Stock -->
+        <div id="stockTab" class="tab-content active" style="padding: 20px;">
+            <div class="list-container" id="stockList"></div>
+        </div>
+
+        <!-- Contenu Entrées -->
+        <div id="entriesTab" class="tab-content" style="padding: 20px;">
+            <div class="list-container" id="entriesList"></div>
+        </div>
+
+        <!-- Contenu Sorties -->
+        <div id="exitsTab" class="tab-content" style="padding: 20px;">
+            <div class="list-container" id="exitsList"></div>
+        </div>
+    </div>
+
+    <!-- Barre d'outils -->
+    <div class="toolbar">
+        <button class="btn btn-primary" onclick="exportPDF()">🖨️ Exporter PDF</button>
+        <button class="btn btn-primary" onclick="printStock()">🖨️ Imprimer</button>
+        <button class="btn btn-warning" onclick="clearHistory('entries')">🧹 Vider Entrées</button>
+        <button class="btn btn-warning" onclick="clearHistory('exits')">🧹 Vider Sorties</button>
+    </div>
+
+    <!-- Barre de statut -->
+    <div class="status-bar" id="statusBar">
+        ✅ Prêt.
+    </div>
+</div>
+
+<script>
+    // ==================== STOCK DATA ====================
+    let stock = {};  // { "Nom": stock_quantity }
+    let entries = []; // [{ date, name, quantity }]
+    let exits = [];   // [{ date, name, quantity }]
+
+    let currentFilter = "";
+    let searchTimeout = null;
+
+    // ==================== INITIALISATION ====================
+    function init() {
+        loadData();
+        updateAllDisplays();
+        updateStatus("Prêt.", "success");
+    }
+
+    function loadData() {
+        // Charger depuis localStorage
+        const savedStock = localStorage.getItem("stock_app_stock");
+        const savedEntries = localStorage.getItem("stock_app_entries");
+        const savedExits = localStorage.getItem("stock_app_exits");
+
+        if (savedStock) {
+            stock = JSON.parse(savedStock);
+        } else {
+            // Données d'exemple
+            stock = {
+                "Clavier Mécanique": 12,
+                "Souris Gaming": 8,
+                "Écran 24 pouces": 3,
+                "Câble USB-C": 25
+            };
+        }
+
+        if (savedEntries) {
+            entries = JSON.parse(savedEntries);
+        } else {
+            entries = [
+                { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 5 },
+                { date: getCurrentDate(), name: "Souris Gaming", quantity: 3 }
+            ];
+        }
+
+        if (savedExits) {
+            exits = JSON.parse(savedExits);
+        } else {
+            exits = [
+                { date: getCurrentDate(), name: "Clavier Mécanique", quantity: 2 }
+            ];
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem("stock_app_stock", JSON.stringify(stock));
+        localStorage.setItem("stock_app_entries", JSON.stringify(entries));
+        localStorage.setItem("stock_app_exits", JSON.stringify(exits));
+    }
+
+    function getCurrentDate() {
+        const now = new Date();
+        return now.toLocaleString('fr-FR', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).replace(',', '');
+    }
+
+    function updateStatus(message, type = "info") {
+        const statusBar = document.getElementById("statusBar");
+        const colors = {
+            success: "#10b981",
+            danger: "#ef4444",
+            warning: "#f59e0b",
+            info: "var(--fg)"
+        };
+        statusBar.style.color = colors[type] || colors.info;
+        statusBar.innerHTML = message;
+        
+        // Auto-effacer après 3 secondes pour les messages non-info
+        if (type !== "info") {
+            setTimeout(() => {
+                if (document.getElementById("statusBar").innerHTML === message) {
+                    document.getElementById("statusBar").innerHTML = "✅ Prêt.";
+                    document.getElementById("statusBar").style.color = "var(--fg)";
+                }
+            }, 3000);
+        }
+    }
+
+    // ==================== AFFICHAGE ====================
+    function updateStockDisplay() {
+        const container = document.getElementById("stockList");
+        if (!container) return;
+        
+        container.innerHTML = "";
+        const sortedProducts = Object.keys(stock).sort((a,b) => a.localeCompare(b));
+        
+        for (let name of sortedProducts) {
+            if (currentFilter && !name.toLowerCase().includes(currentFilter.toLowerCase())) {
+                continue;
+            }
+            const qty = stock[name];
+            const item = document.createElement("div");
+            item.className = "list-item";
+            if (qty < 5) item.classList.add("low-stock");
+            item.innerHTML = `${name.padEnd(30)} | Stock: ${qty}`;
+            item.onclick = () => fillForm(name);
+            container.appendChild(item);
+        }
+        
+        if (container.children.length === 0) {
+            container.innerHTML = '<div class="list-item">Aucun produit trouvé.</div>';
+        }
+    }
+
+    function updateEntriesDisplay() {
+        const container = document.getElementById("entriesList");
+        if (!container) return;
+        
+        container.innerHTML = "";
+        const sortedEntries = [...entries].sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        for (let entry of sortedEntries) {
+            const item = document.createElement("div");
+            item.className = "list-item success-item";
+            item.innerHTML = `${entry.date} | ${entry.name.padEnd(30)} | +${entry.quantity}`;
+            container.appendChild(item);
+        }
+        
+        if (container.children.length === 0) {
+            container.innerHTML = '<div class="list-item">Aucune entrée enregistrée.</div>';
+        }
+    }
+
+    function updateExitsDisplay() {
+        const container = document.getElementById("exitsList");
+        if (!container) return;
+        
+        container.innerHTML = "";
+        const sortedExits = [...exits].sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        for (let exit of sortedExits) {
+            const item = document.createElement("div");
+            item.className = "list-item danger-item";
+            item.innerHTML = `${exit.date} | ${exit.name.padEnd(30)} | -${exit.quantity}`;
+            container.appendChild(item);
+        }
+        
+        if (container.children.length === 0) {
+            container.innerHTML = '<div class="list-item">Aucune sortie enregistrée.</div>';
+        }
+    }
+
+    function updateAllDisplays() {
+        updateStockDisplay();
+        updateEntriesDisplay();
+        updateExitsDisplay();
+    }
+
+    function fillForm(name) {
+        document.getElementById("productName").value = name;
+        document.getElementById("productQty").focus();
+    }
+
+    // ==================== FONCTIONS PRINCIPALES ====================
+    function addProduct() {
+        const name = document.getElementById("productName").value.trim();
+        const qtyInput = document.getElementById("productQty").value.trim();
+        
+        if (!name) {
+            updateStatus("Veuillez saisir un nom de produit.", "warning");
+            return;
+        }
+        
+        const qty = parseInt(qtyInput);
+        if (isNaN(qty) || qty <= 0) {
+            updateStatus("Veuillez saisir une quantité valide (>0).", "warning");
+            return;
+        }
+        
+        if (stock[name]) {
+            stock[name] += qty;
+        } else {
+            stock[name] = qty;
+        }
+        
+        entries.unshift({ date: getCurrentDate(), name: name, quantity: qty });
+        saveData();
+        updateAllDisplays();
+        clearForm();
+        updateStatus(`Produit "${name}" ajouté avec succès (+${qty}).`, "success");
+    }
+    
+    function sellProduct() {
+        const name = document.getElementById("productName").value.trim();
+        const qtyInput = document.getElementById("productQty").value.trim();
+        
+        if (!name) {
+            updateStatus("Veuillez saisir un nom de produit.", "warning");
+            return;
+        }
+        
+        const qty = parseInt(qtyInput);
+        if (isNaN(qty) || qty <= 0) {
+            updateStatus("Veuillez saisir une quantité valide (>0).", "warning");
+            return;
+        }
+        
+        if (!stock[name]) {
+            updateStatus(`Produit "${name}" non trouvé.`, "danger");
+            return;
+        }
+        
+        if (stock[name] < qty) {
+            updateStatus(`Stock insuffisant pour "${name}". Stock actuel: ${stock[name]}`, "danger");
+            return;
+        }
+        
+        stock[name] -= qty;
+        exits.unshift({ date: getCurrentDate(), name: name, quantity: qty });
+        
+        // Supprimer si stock à 0
+        if (stock[name] === 0) {
+            delete stock[name];
+        }
+        
+        saveData();
+        updateAllDisplays();
+        clearForm();
+        updateStatus(`Vente de "${name}" enregistrée (-${qty}).`, "success");
+    }
+    
+    function deleteProduct() {
+        const name = document.getElementById("productName").value.trim();
+        
+        if (!name) {
+            updateStatus("Veuillez saisir un nom de produit à supprimer.", "warning");
+            return;
+        }
+        
+        if (!stock[name]) {
+            updateStatus(`Produit "${name}" non trouvé.`, "danger");
+            return;
+        }
+        
+        if (confirm(`Voulez-vous vraiment supprimer "${name}" ?`)) {
+            delete stock[name];
+            saveData();
+            updateAllDisplays();
+            clearForm();
+            updateStatus(`Produit "${name}" supprimé.`, "success");
+        }
+    }
+    
+    function searchProducts() {
+        const searchTerm = document.getElementById("searchInput").value.trim();
+        currentFilter = searchTerm;
+        updateStockDisplay();
+        updateStatus(`Recherche: "${searchTerm || 'tous les produits'}"`, "info");
+    }
+    
+    function clearSearch() {
+        document.getElementById("searchInput").value = "";
+        currentFilter = "";
+        updateStockDisplay();
+        updateStatus("Recherche effacée.", "info");
+    }
+    
+    function clearForm() {
+        document.getElementById("productName").value = "";
+        document.getElementById("productQty").value = "";
+        document.getElementById("productName").focus();
+    }
+    
+    function clearHistory(type) {
+        if (type === 'entries') {
+            if (confirm("Voulez-vous vraiment vider l'historique des entrées ?")) {
+                entries = [];
+                saveData();
+                updateEntriesDisplay();
+                updateStatus("Historique des entrées vidé.", "success");
+            }
+        } else if (type === 'exits') {
+            if (confirm("Voulez-vous vraiment vider l'historique des sorties ?")) {
+                exits = [];
+                saveData();
+                updateExitsDisplay();
+                updateStatus("Historique des sorties vidé.", "success");
+            }
+        }
+    }
+    
+    // ==================== EXPORT & IMPRESSION ====================
+    function exportPDF() {
+        // Générer un rapport HTML pour impression/PDF
+        const printWindow = window.open('', '_blank');
+        let htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Inventaire des Stocks</title>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                h1 { color: #4f46e5; border-bottom: 2px solid #4f46e5; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #4f46e5; color: white; }
+                .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
+                .low { color: #ef4444; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1>📦 Inventaire des Stocks</h1>
+            <p>Généré le ${getCurrentDate()}</p>
+            <table>
+                <thead>
+                    <tr><th>Produit</th><th>Stock</th></tr>
+                </thead>
+                <tbody>
+        `;
+        
+        const sortedProducts = Object.keys(stock).sort();
+        for (let name of sortedProducts) {
+            const qty = stock[name];
+            const lowClass = qty < 5 ? 'class="low"' : '';
+            htmlContent += `<tr ${lowClass}><td>${escapeHtml(name)}</td><td>${qty}</td></tr>`;
+        }
+        
+        htmlContent += `
+                </tbody>
+            </table>
+            <div class="footer">
+                Rapport généré automatiquement - Gestion de Stock
+            </div>
+        </body>
+        </html>
+        `;
+        
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.print();
+        updateStatus("Export PDF/Impression lancée.", "success");
+    }
+    
+    function printStock() {
+        exportPDF(); // Même comportement
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // ==================== INTERFACE ONGLETS ====================
+    function switchTab(tabName) {
+        // Mettre à jour les onglets
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        if (tabName === 'stock') {
+            document.querySelector('.tab').classList.add('active');
+            document.getElementById('stockTab').classList.add('active');
+        } else if (tabName === 'entries') {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('entriesTab').classList.add('active');
+        } else if (tabName === 'exits') {
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('exitsTab').classList.add('active');
+        }
+    }
+    
+    // ==================== THEME ====================
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem("stock_app_theme", isDark ? "dark" : "light");
+        updateStatus(`Thème ${isDark ? "sombre" : "clair"} activé.`, "info");
+    }
+    
+    function loadTheme() {
+        const savedTheme = localStorage.getItem("stock_app_theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark");
+        }
+    }
+    
+    // ==================== ÉVÉNEMENTS ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTheme();
+        init();
+        
+        // Recherche en temps réel
+        const searchInput = document.getElementById("searchInput");
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchProducts();
+            }, 300);
+        });
+        
+        // Enter dans les champs
+        document.getElementById("productQty").addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addProduct();
+        });
+        document.getElementById("productName").addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById("productQty").focus();
+        });
+    });
+</script>
+</body>
+</html>
